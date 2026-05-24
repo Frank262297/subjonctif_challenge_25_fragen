@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Subjonctif Challenge – abwechslungsreiches Quiz</title>
+  <style>
+    :root{
+      --purple:#4c1d95; --violet:#7c3aed; --pink:#db2777; --blue:#2563eb;
+      --green:#16a34a; --red:#dc2626; --yellow:#facc15; --orange:#f97316;
+      --bg:#180b3d; --card:#fff; --soft:#f8fafc; --text:#111827; --muted:#6b7280;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0; min-height:100vh; font-family:Arial, Helvetica, sans-serif;
+      background:radial-gradient(circle at top left,#7c3aed,#180b3d 55%,#0f172a);
+      color:var(--text); display:flex; align-items:center; justify-content:center; padding:22px;
+    }
+    .app{width:min(1050px,100%); background:rgba(255,255,255,.96); border-radius:28px; padding:24px; box-shadow:0 22px 70px rgba(0,0,0,.38)}
+    .screen{display:none}.screen.active{display:block}
+    h1{font-size:clamp(28px,5vw,54px); color:var(--purple); margin:0 0 12px}
+    h2{margin:0;color:var(--purple)}
+    .center{text-align:center; padding:28px 12px}
+    p{font-size:18px; color:var(--muted); line-height:1.45}
+    .btn{
+      border:0; border-radius:18px; padding:14px 22px; font-size:18px; font-weight:800; cursor:pointer;
+      background:var(--purple); color:white; box-shadow:0 6px 0 rgba(0,0,0,.22); margin:8px;
+    }
+    .btn:hover{filter:brightness(.96)} .btn:active{transform:translateY(2px); box-shadow:0 4px 0 rgba(0,0,0,.22)}
+    .top{display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:12px}
+    .pill{background:#ede9fe;color:var(--purple);border-radius:999px;padding:10px 14px;font-weight:900}
+    .progress{height:16px;background:#e5e7eb;border-radius:999px;overflow:hidden;margin:12px 0 20px}
+    .bar{height:100%;width:0;background:linear-gradient(90deg,#22c55e,#3b82f6,#a855f7);transition:.25s}
+    .card{background:var(--soft);border:2px solid #e5e7eb;border-radius:24px;padding:22px}
+    .meta{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;color:var(--muted);font-weight:900;margin-bottom:12px}
+    .q{font-size:clamp(23px,3.2vw,36px);font-weight:900;text-align:center;line-height:1.25;margin:16px 0 22px}
+    .answers{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
+    .answer{
+      border:0;min-height:92px;border-radius:18px;padding:14px;color:white;text-align:left;
+      font-size:clamp(17px,2.2vw,23px);font-weight:900;cursor:pointer;box-shadow:0 7px 0 rgba(0,0,0,.18);
+      display:flex;align-items:center;gap:12px;
+    }
+    .answer:nth-child(1){background:#ef4444}.answer:nth-child(2){background:#2563eb}
+    .answer:nth-child(3){background:#facc15;color:#111827}.answer:nth-child(4){background:#16a34a}
+    .symbol{font-size:28px;min-width:34px;text-align:center}
+    .correct{outline:6px solid #15803d!important;filter:brightness(1.05)}
+    .wrong{outline:6px solid #991b1b!important;filter:grayscale(.25) brightness(.85)}
+    .disabled{pointer-events:none}
+    .feedback{font-size:22px;font-weight:900;text-align:center;margin-top:16px;min-height:32px}
+    .explain{display:none;background:#fffbeb;border-left:7px solid #f59e0b;border-radius:14px;padding:13px 15px;margin-top:12px;font-size:17px}
+    input[type=text]{
+      width:min(520px,100%); font-size:24px; padding:15px 16px; border:3px solid #c4b5fd; border-radius:16px;
+      text-align:center; font-weight:800; outline:none; background:white;
+    }
+    .inputbox{text-align:center}
+    .hint{font-size:15px;color:var(--muted);margin-top:8px}
+    .chips{display:flex; gap:10px; flex-wrap:wrap; justify-content:center; margin:14px 0}
+    .chip{
+      background:white; border:3px solid #ddd6fe; padding:11px 14px; border-radius:999px; font-weight:900; cursor:pointer;
+      user-select:none;
+    }
+    .chip.selected{background:#ddd6fe;border-color:#7c3aed}
+    .dropzone{
+      min-height:56px;background:white;border:3px dashed #a78bfa;border-radius:16px;padding:12px;margin:10px auto;
+      max-width:820px;font-size:20px;font-weight:900;text-align:center;
+    }
+    .tiny{font-size:14px;color:var(--muted)}
+    .result{text-align:center;padding:28px 12px}.score{font-size:clamp(48px,8vw,92px);font-weight:1000;color:var(--purple);margin:12px 0}
+    .review{margin-top:24px;text-align:left;background:var(--soft);border-radius:18px;padding:16px;max-height:420px;overflow:auto}
+    .reviewitem{padding:12px;border-bottom:1px solid #e5e7eb}
+    @media(max-width:720px){.answers{grid-template-columns:1fr}.answer{min-height:70px}.app{padding:16px}}
+  </style>
+</head>
+<body>
+  <main class="app">
+    <section id="start" class="screen active center">
+      <h1>Subjonctif Challenge</h1>
+      <p>Ein abwechslungsreiches Quiz im Kahoot-Stil: Multiple Choice, Lückentext, Sortieren, Odd One Out, Fehler finden und Mini-Übersetzung.</p>
+      <p><strong>25 Fragen</strong> – ideal für Klasse 7/8 oder Nachhilfe.</p>
+      <button class="btn" onclick="startQuiz()">Start</button>
+    </section>
+
+    <section id="quiz" class="screen">
+      <div class="top">
+        <h2>Subjonctif Challenge</h2>
+        <div class="pill" id="scorePill">Punkte: 0</div>
+      </div>
+      <div class="progress"><div id="bar" class="bar"></div></div>
+      <div class="card">
+        <div class="meta">
+          <div id="counter">Frage 1 / 25</div>
+          <div id="typeLabel">Typ</div>
+        </div>
+        <div id="question" class="q"></div>
+        <div id="taskArea"></div>
+        <div id="feedback" class="feedback"></div>
+        <div id="explain" class="explain"></div>
+      </div>
+      <button id="nextBtn" class="btn" onclick="nextQuestion()" style="display:none">Weiter</button>
+    </section>
+
+    <section id="end" class="screen result">
+      <h1>Fertig!</h1>
+      <div id="finalScore" class="score"></div>
+      <p id="finalText"></p>
+      <button class="btn" onclick="restartQuiz()">Nochmal spielen</button>
+      <div id="review" class="review"></div>
+    </section>
+  </main>
+
+<script>
+const quiz = [
+  {type:"Multiple Choice", q:"Wann benutzt man den subjonctif?", options:["bei Sicherheit","bei Wunsch, Gefühl, Zweifel oder Notwendigkeit","immer nach parce que","nur in der Vergangenheit"], correct:1, exp:"Der subjonctif steht oft nach Ausdrücken von Wunsch, Gefühl, Zweifel, Möglichkeit oder Notwendigkeit."},
+  {type:"Lückentext", q:"Complète : Il faut que tu ___ patient.", answer:["sois"], exp:"être im subjonctif: que tu sois."},
+  {type:"Odd One Out", q:"Welcher Ausdruck löst normalerweise KEINEN subjonctif aus?", options:["Je veux que","Il faut que","Je sais que","Je doute que"], correct:2, exp:"„Je sais que“ drückt Sicherheit/Wissen aus → indicatif."},
+  {type:"Lückentext", q:"Complète : Je suis content que vous ___ ici.", answer:["soyez"], exp:"être im subjonctif: que vous soyez."},
+  {type:"Multiple Choice", q:"Welche Form ist richtig? Je veux qu'elle ___ avec nous.", options:["vient","vienne","venir","viendra"], correct:1, exp:"Nach vouloir que steht subjonctif: qu'elle vienne."},
+  {type:"Sortieren", q:"Bringe den Satz in die richtige Reihenfolge.", parts:["Il faut","que","nous","fassions","attention"], answer:"Il faut que nous fassions attention", exp:"faire im subjonctif: que nous fassions."},
+  {type:"Fehler finden", q:"Finde die falsche Stelle: Je veux que tu fais tes devoirs.", options:["Je veux que","tu","fais","tes devoirs"], correct:2, exp:"Richtig ist: Je veux que tu fasses tes devoirs."},
+  {type:"Lückentext", q:"Complète : Il est important que nous ___ français.", answer:["parlions"], exp:"parler im subjonctif mit nous: que nous parlions."},
+  {type:"Multiple Choice", q:"Welcher Satz ist richtig?", options:["Je pense qu'il soit sympa.","Je pense qu'il est sympa.","Je pense qu'il être sympa.","Je pense qu'il sois sympa."], correct:1, exp:"Nach je pense que steht normalerweise indicatif: il est."},
+  {type:"Mini-Übersetzung", q:"Übersetze sinnvoll: Es ist möglich, dass sie kommt.", answer:["il est possible qu'elle vienne","il est possible quelle vienne"], exp:"„Il est possible que“ + subjonctif: qu'elle vienne."},
+  {type:"Lückentext", q:"Complète : Je doute qu'ils ___ raison.", answer:["aient"], exp:"avoir im subjonctif: qu'ils aient."},
+  {type:"Odd One Out", q:"Welche Form ist KEIN subjonctif?", options:["sois","aille","fais","sache"], correct:2, exp:"„fais“ ist indicatif. Subjonctif wäre: fasse."},
+  {type:"Multiple Choice", q:"Complète : Il faut que vous ___ ce texte.", options:["lisez","lisiez","lire","lisons"], correct:1, exp:"lire im subjonctif mit vous: que vous lisiez."},
+  {type:"Sortieren", q:"Bringe den Satz in die richtige Reihenfolge.", parts:["Je","suis triste","que","tu","partes"], answer:"Je suis triste que tu partes", exp:"Gefühl + que → subjonctif: que tu partes."},
+  {type:"Lückentext", q:"Complète : Je veux que mes amis ___ venir.", answer:["puissent"], exp:"pouvoir im subjonctif: qu'ils puissent."},
+  {type:"Fehler finden", q:"Finde die falsche Stelle: Il faut que nous allons à l'école.", options:["Il faut que","nous","allons","à l'école"], correct:2, exp:"Richtig ist: Il faut que nous allions à l'école."},
+  {type:"Multiple Choice", q:"Nach welcher Konjunktion steht der subjonctif?", options:["parce que","avant que","quand","pendant que"], correct:1, exp:"Nach avant que steht subjonctif."},
+  {type:"Lückentext", q:"Complète : Je ne crois pas qu'il ___ malade.", answer:["soit"], exp:"Verneinte Meinung/Unsicherheit → subjonctif: qu'il soit."},
+  {type:"Mini-Übersetzung", q:"Übersetze sinnvoll: Ich möchte, dass du mir hilfst.", answer:["je veux que tu m'aides","je voudrais que tu m'aides"], exp:"vouloir/voudrais que + subjonctif: que tu m'aides."},
+  {type:"Multiple Choice", q:"Complète : Pour que tu ___ mieux, je parle lentement.", options:["comprends","comprennes","comprendras","comprendre"], correct:1, exp:"pour que drückt Ziel/Absicht aus → subjonctif."},
+  {type:"Odd One Out", q:"Welches Verb ist unregelmäßig im subjonctif?", options:["parler","aimer","être","chercher"], correct:2, exp:"être ist unregelmäßig: sois, soit, soyons, soyez, soient."},
+  {type:"Lückentext", q:"Complète : Il est nécessaire que les élèves ___ attentifs.", answer:["soient"], exp:"être im subjonctif bei ils/elles: soient."},
+  {type:"Fehler finden", q:"Finde die falsche Stelle: Je suis sûr qu'elle soit là.", options:["Je suis sûr","qu'elle","soit","là"], correct:2, exp:"Bei Sicherheit steht indicatif: Je suis sûr qu'elle est là."},
+  {type:"Mini-Übersetzung", q:"Übersetze sinnvoll: Es ist wichtig, dass wir pünktlich sind.", answer:["il est important que nous soyons à l'heure","il est important que nous soyons ponctuels","il est important que nous soyons ponctuelles"], exp:"il est important que + subjonctif: que nous soyons."},
+  {type:"Multiple Choice", q:"Welcher Satz ist korrekt?", options:["Il faut que tu sais la règle.","Je doute qu'elle peut venir.","Je veux que nous allions au cinéma.","Je suis sûr qu'il ait faim."], correct:2, exp:"Richtig: vouloir que + subjonctif → que nous allions."}
+];
+
+let current = 0, score = 0, locked = false, review = [], selectedOrder = [];
+
+function norm(s){
+  return s.toLowerCase().trim()
+    .replace(/[.!?]/g,"")
+    .replace(/\s+/g," ")
+    .replace(/’/g,"'")
+    .normalize("NFD").replace(/[\u0300-\u036f]/g,"");
+}
+function show(id){document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));document.getElementById(id).classList.add("active")}
+function startQuiz(){current=0;score=0;locked=false;review=[];show("quiz");render()}
+function restartQuiz(){startQuiz()}
+
+function render(){
+  locked=false; selectedOrder=[];
+  const item=quiz[current];
+  document.getElementById("counter").textContent=`Frage ${current+1} / ${quiz.length}`;
+  document.getElementById("typeLabel").textContent=item.type;
+  document.getElementById("question").textContent=item.q;
+  document.getElementById("scorePill").textContent=`Punkte: ${score}`;
+  document.getElementById("bar").style.width=`${(current/quiz.length)*100}%`;
+  document.getElementById("feedback").textContent="";
+  document.getElementById("explain").style.display="none";
+  document.getElementById("explain").textContent="";
+  document.getElementById("nextBtn").style.display="none";
+  const area=document.getElementById("taskArea");
+  area.innerHTML="";
+
+  if(["Multiple Choice","Odd One Out","Fehler finden"].includes(item.type)){
+    const div=document.createElement("div"); div.className="answers";
+    const sym=["▲","◆","●","■"];
+    item.options.forEach((o,i)=>{
+      const b=document.createElement("button"); b.className="answer";
+      b.innerHTML=`<span class="symbol">${sym[i]}</span><span>${o}</span>`;
+      b.onclick=()=>checkOption(i);
+      div.appendChild(b);
+    });
+    area.appendChild(div);
+  }
+
+  if(item.type==="Lückentext" || item.type==="Mini-Übersetzung"){
+    area.innerHTML=`
+      <div class="inputbox">
+        <input id="textAnswer" type="text" placeholder="Antwort eingeben..." onkeydown="if(event.key==='Enter') checkText()" />
+        <div class="hint">Tipp: Akzente sind hier nicht entscheidend. Satzzeichen sind egal.</div>
+        <button class="btn" onclick="checkText()">Prüfen</button>
+      </div>`;
+    setTimeout(()=>document.getElementById("textAnswer").focus(),50);
+  }
+
+  if(item.type==="Sortieren"){
+    area.innerHTML=`<div class="dropzone" id="drop">Klicke die Wörter in der richtigen Reihenfolge an.</div><div class="chips" id="chips"></div><div class="center"><button class="btn" onclick="checkOrder()">Prüfen</button><button class="btn" onclick="render()">Zurücksetzen</button></div>`;
+    const shuffled=[...item.parts].sort(()=>Math.random()-0.5);
+    const chips=document.getElementById("chips");
+    shuffled.forEach(p=>{
+      const c=document.createElement("span"); c.className="chip"; c.textContent=p;
+      c.onclick=()=>{
+        if(c.classList.contains("selected")) return;
+        c.classList.add("selected"); selectedOrder.push(p);
+        document.getElementById("drop").textContent=selectedOrder.join(" ");
+      };
+      chips.appendChild(c);
+    });
+  }
+}
+
+function lockAndFeedback(ok, chosen, correctText){
+  if(locked) return;
+  locked=true;
+  if(ok){score++; document.getElementById("feedback").textContent="✅ Richtig!"; document.getElementById("feedback").style.color="#15803d";}
+  else{document.getElementById("feedback").textContent="❌ Nicht ganz."; document.getElementById("feedback").style.color="#dc2626";}
+  const item=quiz[current];
+  document.getElementById("scorePill").textContent=`Punkte: ${score}`;
+  document.getElementById("explain").textContent=item.exp;
+  document.getElementById("explain").style.display="block";
+  document.getElementById("nextBtn").style.display="inline-block";
+  review.push({q:item.q,type:item.type,ok,chosen,correct:correctText,exp:item.exp});
+}
+
+function checkOption(i){
+  const item=quiz[current];
+  document.querySelectorAll(".answer").forEach((b,idx)=>{
+    b.classList.add("disabled");
+    if(idx===item.correct) b.classList.add("correct");
+    if(idx===i && idx!==item.correct) b.classList.add("wrong");
+  });
+  lockAndFeedback(i===item.correct,item.options[i],item.options[item.correct]);
+}
+
+function checkText(){
+  const item=quiz[current];
+  const input=document.getElementById("textAnswer");
+  const val=input.value;
+  const ok=item.answer.some(a=>norm(val)===norm(a));
+  input.disabled=true;
+  lockAndFeedback(ok,val,item.answer[0]);
+}
+
+function checkOrder(){
+  const item=quiz[current];
+  const val=selectedOrder.join(" ");
+  const ok=norm(val)===norm(item.answer);
+  document.querySelectorAll(".chip").forEach(c=>c.style.pointerEvents="none");
+  document.getElementById("drop").style.borderColor=ok ? "#16a34a" : "#dc2626";
+  lockAndFeedback(ok,val,item.answer);
+}
+
+function nextQuestion(){
+  current++;
+  if(current>=quiz.length) endQuiz();
+  else render();
+}
+
+function endQuiz(){
+  show("end");
+  document.getElementById("finalScore").textContent=`${score} / ${quiz.length}`;
+  const pct=Math.round(score/quiz.length*100);
+  let text = pct>=90 ? "Très bien! Das sitzt schon richtig gut." :
+             pct>=70 ? "Gut! Jetzt noch die unregelmäßigen Formen festigen." :
+             pct>=50 ? "Solide Grundlage – die Auslöser und Formen weiter üben." :
+                       "Noch einmal systematisch wiederholen: Auslöser, être/avoir/aller/faire/pouvoir.";
+  document.getElementById("finalText").textContent=`${pct}% – ${text}`;
+  const r=document.getElementById("review");
+  r.innerHTML="<h2>Auswertung</h2>";
+  review.forEach((x,i)=>{
+    const div=document.createElement("div"); div.className="reviewitem";
+    div.innerHTML=`<strong>${i+1}. ${x.ok?"✅":"❌"} ${x.type}</strong><br>
+      <span class="tiny">${x.q}</span><br>
+      <span class="tiny">Deine Antwort: ${x.chosen || "—"}</span><br>
+      <span class="tiny">Richtig: ${x.correct}</span><br>
+      <span class="tiny">${x.exp}</span>`;
+    r.appendChild(div);
+  });
+}
+</script>
+</body>
+</html>
